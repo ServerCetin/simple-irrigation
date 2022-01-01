@@ -1,11 +1,10 @@
 #include <TimeLib.h>
 #include <DS3231.h>
 #include <Wire.h>
-#include <Servo.h>
 
 #define MAX_IRRIGATION_PROGRAM_COUNT 48
+#define SELENOID_PIN 8
 
-Servo servo;
 DS3231 dsClock;
 RTCDateTime rtcDate; // this is the now variable, {rtcDate.year, .month, .... , .second}
 uint8_t nearestIrrigationIndex = 255; // for today
@@ -58,7 +57,7 @@ void defineMyPrograms(){ // You can define your irrigation programs here
      *   6: monthly
     */
 
-    setProgramDate(tempEndDate, 2021, 8, 25, 12, 00, 0);
+    setProgramDate(tempEndDate, 2022, 8, 25, 12, 00, 0);
 
     setProgramDate(tempStartDate, 2021, 8, 11, 0, 0, 0);
     addProgram(1, 5, tempStartDate, tempEndDate);
@@ -81,17 +80,17 @@ void defineMyPrograms(){ // You can define your irrigation programs here
     setProgramDate(tempStartDate, 2021, 8, 10, 3, 0, 0);
     addProgram(1, 1, tempStartDate, tempEndDate);
 
-    setProgramDate(tempStartDate, 2021, 8, 10, 3, 30, 0);
-    addProgram(1, 1, tempStartDate, tempEndDate);
+    setProgramDate(tempStartDate, 2021, 8, 10, 19, 32, 0);
+    addProgram(1, 2, tempStartDate, tempEndDate);
 
 
 }
 
 void updateClockInfo(){rtcDate = dsClock.getDateTime();}
 
-void setServo(){
+void setValve(){
 
-    servo.attach(13);
+    pinMode(SELENOID_PIN, OUTPUT);
     turnOffValve();
 
 }
@@ -106,14 +105,16 @@ void setClockSystem(){
 
 void turnOffValve(){
 
-    servo.write(115);
+  Serial.println("kapadim");//wbd will be deleted
+    digitalWrite(SELENOID_PIN, LOW);
     delay(150);
 
 }
 
 void turnOnValve(){
 
-    servo.write(0);
+    Serial.println("actim");//wbd will be deleted
+    digitalWrite(SELENOID_PIN, HIGH);
     delay(150);
 
 }
@@ -122,11 +123,13 @@ void(* resetSystem)(void) = 0;
 
 void setSystem(){
 
-    setServo();
+    Serial.begin(9600);//will be deleted
+    setValve();
     setClockSystem();
     updateClockInfo();
     deactivateAllPrograms();
     defineMyPrograms();
+    Serial.println(String(getTimeFromRTCDateTime(rtcDate)));
 
 }
 
